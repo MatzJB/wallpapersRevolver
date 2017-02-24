@@ -1,21 +1,21 @@
 #!/usr/bin/python
 
 """
-Example: 
-  python wallpaper_revolver.py -w "C:/wallpapers/" -t 5
+Example: python wallpapersRevolver.py -w "C:/wallpapers/" -t 5
 """
 
-import ctypes
-import os
-import time
-import sys
-import getopt
-import argparse
-from PIL import Image
 from time import gmtime, strftime
+from PIL import Image
+import argparse
+import getopt
+import ctypes
+import time
+import os
+import sys
 
 
 def resize(imagePath, maxh=1500, maxw=1300, method=Image.BICUBIC):
+''' resize image using default dimensions '''
     im = Image.open(imagePath)
     w, h = im.size
     whRatio = float(w)/h
@@ -27,10 +27,9 @@ def resize(imagePath, maxh=1500, maxw=1300, method=Image.BICUBIC):
 
     return im
 
-# returns all files ending with any of the extensions in <suffices>
-
 
 def getFilesFromDir(path):
+''' returns all files ending with any of the extensions in <suffices>'''
     return [name for name in os.listdir(path) if name.endswith(".jpg")]
 
 
@@ -46,24 +45,32 @@ def main():
                         help="the duration of each wallpaper (in minutes)",
                         type=int, default=30, required=False)
 
+    parser.add_argument("-v", "--verbosePrints",
+                        help="verbose output",
+                        action='store_true', required=False)
+
     args = vars(parser.parse_args())
     swapTimeOut = args['swapTimeOut']
     wallPapersPath = args['wallPapersPath']
+    verboseOutput = args['verbosePrints']
 
     wallFiles = getFilesFromDir(wallPapersPath)
 
     current_wallpaper = wallPapersPath + "_current_wallpaper_.jpg"
 
     while True:
+        4
         for i in range(len(wallFiles)):
-            # refetch wallpapers each switch
+            # refetch wallpapers for each switch in case they are deleted (or
+            # use try/exception)
             wallFiles = getFilesFromDir(wallPapersPath)
             sys.stdout.flush()
             filename = wallPapersPath + wallFiles[i]
 
             # save resized wallpaper in the dir for display
             img = resize(filename)
-            print strftime("%a, %d %b %Y %H:%M:%S", gmtime())
+            if verboseOutput:
+                print strftime("%a, %d %b %Y %H:%M:%S", gmtime())
             img.save(
                 current_wallpaper, format='JPEG', subsampling=0, quality=100)
 
@@ -71,7 +78,8 @@ def main():
             ctypes.windll.user32.SystemParametersInfoA(
                 SPI_SETDESKWALLPAPER, 0, current_wallpaper, 3)
 
-            print " ", filename
+            if verboseOutput:
+                print " ", filename
             time.sleep(60*swapTimeOut)
 
 
