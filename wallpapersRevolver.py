@@ -15,7 +15,7 @@ import sys
 
 
 def resize(imagePath, maxh=1500, maxw=1300, method=Image.BICUBIC):
-''' resize image using default dimensions '''
+    ''' resize image using default dimensions '''
     im = Image.open(imagePath)
     w, h = im.size
     whRatio = float(w)/h
@@ -29,7 +29,7 @@ def resize(imagePath, maxh=1500, maxw=1300, method=Image.BICUBIC):
 
 
 def getFilesFromDir(path):
-''' returns all files ending with any of the extensions in <suffices>'''
+    ''' returns all files ending with any of the extensions in <suffices>'''
     return [name for name in os.listdir(path) if name.endswith(".jpg")]
 
 
