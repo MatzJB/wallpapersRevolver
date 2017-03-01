@@ -9,6 +9,7 @@ from PIL import Image
 import argparse
 import getopt
 import ctypes
+import random
 import time
 import os
 import sys
@@ -33,6 +34,31 @@ def getFilesFromDir(path):
     return [name for name in os.listdir(path) if name.endswith(".jpg")]
 
 
+def setWallpaper(filename, currentWallpaper, verboseOutput):
+
+    # save resized wallpaper in the dir for display
+    img = resize(filename)
+    if verboseOutput:
+        print strftime("%a, %d %b %Y %H:%M:%S", gmtime())
+    img.save(
+        currentWallpaper, format='JPEG', subsampling=0, quality=100)
+
+    SPI_SETDESKWALLPAPER = 20
+    ctypes.windll.user32.SystemParametersInfoA(
+        SPI_SETDESKWALLPAPER, 0, currentWallpaper, 3)
+    if verboseOutput:
+        print " ", filename
+
+    return True
+
+
+def removeFile(list, element):
+    try:
+        list.remove(element)
+    except ValueError:
+        pass
+
+
 def main():
 
     parser = argparse.ArgumentParser(
@@ -49,39 +75,39 @@ def main():
                         help="verbose output",
                         action='store_true', required=False)
 
+    parser.add_argument("-r", "--randomPicking",
+                        help="randomize picking",
+                        action='store_true', required=False)
+
     args = vars(parser.parse_args())
     swapTimeOut = args['swapTimeOut']
     wallPapersPath = args['wallPapersPath']
     verboseOutput = args['verbosePrints']
+    rand = args['randomPicking']
 
     wallFiles = getFilesFromDir(wallPapersPath)
-
-    current_wallpaper = wallPapersPath + "_current_wallpaper_.jpg"
+    currentWallpaper = os.path.join(wallPapersPath, "_current_wallpaper_.jpg")
 
     while True:
-        4
-        for i in range(len(wallFiles)):
-            # refetch wallpapers for each switch in case they are deleted (or
-            # use try/exception)
+
+        if rand:
             wallFiles = getFilesFromDir(wallPapersPath)
-            sys.stdout.flush()
-            filename = wallPapersPath + wallFiles[i]
-
-            # save resized wallpaper in the dir for display
-            img = resize(filename)
-            if verboseOutput:
-                print strftime("%a, %d %b %Y %H:%M:%S", gmtime())
-            img.save(
-                current_wallpaper, format='JPEG', subsampling=0, quality=100)
-
-            SPI_SETDESKWALLPAPER = 20
-            ctypes.windll.user32.SystemParametersInfoA(
-                SPI_SETDESKWALLPAPER, 0, current_wallpaper, 3)
-
-            if verboseOutput:
-                print " ", filename
+            removeFile(wallFiles, currentWallpaper)
+            # should randomly mix the files only once, but
+            random.shuffle(wallFiles)
+            filename = os.path.join(wallPapersPath, wallFiles[0])
+            setWallpaper(filename, currentWallpaper, verboseOutput)
             time.sleep(60*swapTimeOut)
-
+        else:
+            for i in range(len(wallFiles)):
+                # refetch wallpapers for each switch in case they are deleted (or
+                # use try/exception)
+                wallFiles = getFilesFromDir(wallPapersPath)
+                removeFile(wallFiles, currentWallpaper)
+                sys.stdout.flush()
+                filename = os.path.join(wallPapersPath, wallFiles[i])
+                setWallpaper(filename, currentWallpaper, verboseOutput)
+                time.sleep(60*swapTimeOut)
 
 if __name__ == '__main__':
     main()
