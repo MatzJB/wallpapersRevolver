@@ -1,7 +1,5 @@
-#!/usr/bin/python
-
 """
-Example: python wallpapersRevolver.py -w "C:/wallpapers/" -t 5
+Example: python wallpapersRevolver.py -w "C:/wallpapers/" -t 5 -r
 """
 
 from time import gmtime, strftime
